@@ -3,9 +3,10 @@ import "./scss/styles.scss";
 import { ProductsModel } from "./components/Models/ProductsModel";
 import { BasketModel } from "./components/Models/BasketModel";
 import { BuyerModel } from "./components/Models/BuyerModel";
-import { AppApi } from "./components/Models/AppApi";
+import { AppApi } from "./components/services/AppApi";
 import { Api } from "./components/base/Api";
 import { API_URL } from "./utils/constants";
+import { IOrder } from "./types";
 
 const api = new Api(API_URL);
 const appApi = new AppApi(api);
@@ -19,7 +20,7 @@ async function init() {
         console.log("Загрузка товаров с сервера...");
         const data = await appApi.getProducts();
         productsModel.setItems(data.items);
-        console.log("Каталог загружен. Товаров:", data.items.length);
+        console.log("Каталог загружен. Товаров:", productsModel.getTotal()); 
 
         //Проверка ProductsModel
         console.group("Проверка ProductsModel");
@@ -71,16 +72,33 @@ async function init() {
             phone: "+77081112233",
             address: "Москва, какая-то улица, какой-то дом",
         });
+        console.log("Данные покупателя (заполненные):", buyerModel.getUserData());
 
-        console.log("Данные покупателя:", buyerModel.getUserData());
-        
         //Тест валидации
         console.log("Ошибки валидации (заполненные данные):", buyerModel.validate());
 
-        const order = buyerModel.prepareOrder(
-            ["854cef69-976d-4c2a-a18c-2aa45046c390", "c101ab44-ed99-4a54-990d-47aa2bb4e7d9"],
-            2200
-        );
+        buyerModel.clear();
+        console.log("Данные покупателя (после очистки):", buyerModel.getUserData());
+
+        buyerModel.setUserData({
+            payment: "card",
+            email: "Alpha.centauri@Alphacentauri.io",
+            phone: "+77081112233",
+            address: "Москва, какая-то улица, какой-то дом",
+        });
+
+        if (product1) basketModel.addItem(product1);
+        if (product2) basketModel.addItem(product2);
+
+        const buyerData = buyerModel.getUserData();
+        const order: IOrder = {
+            payment: buyerData.payment || 'card',
+            email: buyerData.email,
+            phone: buyerData.phone,
+            address: buyerData.address,
+            items: basketModel.getItems().map(item => item.id),
+            total: basketModel.getTotalPrice()
+        };
         console.log("Заказ для отправки:", order);
         console.groupEnd();
 
@@ -94,3 +112,5 @@ async function init() {
         console.error("Ошибка:", err);
     }
 }
+
+init();

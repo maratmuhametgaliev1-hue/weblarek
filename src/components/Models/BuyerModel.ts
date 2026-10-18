@@ -1,7 +1,13 @@
-import { IBuyer, IOrder } from '../../types';
+import { IBuyer, TBuyerErrors } from '../../types';
 
 export class BuyerModel {
-    private _data: Partial<IBuyer> = {};
+
+    private _data: IBuyer = {
+        payment: null,
+        email: '',
+        phone: '',
+        address: '',
+    };
 
     //Сохранение данных
     setUserData(data: Partial<IBuyer>): void {
@@ -9,44 +15,37 @@ export class BuyerModel {
     }
 
     //Получение всех данных
-    getUserData(): Partial<IBuyer> {
+    getUserData(): IBuyer {
         return this._data;
     }
 
     //Очистка данных
     clear(): void {
-        this._data = {};
+        this._data = {
+            payment: null,
+            email: '',
+            phone: '',
+            address: '',
+        };
     }
 
     //Валидация данных
-    validate(): Record<string, string> {
-        const errors: Record<string, string> = {};
+    validate(): TBuyerErrors {
+        const errors: TBuyerErrors = {};
 
         if (!this._data.payment) {
             errors.payment = 'Не выбран вид оплаты';
         }
-        if (!this._data.email) {
+        if (!this._data.email.trim()) {
             errors.email = 'Укажите email';
         }
-        if (!this._data.phone) {
+        if (!this._data.phone.trim()) {
             errors.phone = 'Укажите телефон';
         }
-        if (!this._data.address) {
+        if (!this._data.address.trim()) {
             errors.address = 'Укажите адрес';
         }
 
         return errors;
-    }
-
-    //Подготовка заказа для отправки
-    prepareOrder(items: string[], total: number): IOrder {
-        return {
-            payment: this._data.payment || 'card',
-            email: this._data.email || '',
-            phone: this._data.phone || '',
-            address: this._data.address || '',
-            items,
-            total,
-        };
     }
 }
